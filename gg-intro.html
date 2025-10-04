@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pharaoh & JK Adventure Game Ver.2 (English Edition)</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+    }
+    .hidden { display: none; }
+    .btns, #reward-buttons, #lang-buttons, #restart-button {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+    button#exit-btn {
+      background-color: #f44336;
+    }
+    button:disabled {
+      background-color: #999;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .image-wrapper {
+      width: 90%;
+      max-width: 800px;
+      margin: auto;
+      position: relative;
+    }
+    .scene-img {
+      width: 100%;
+      display: none;
+      border: 2px solid #666;
+      border-radius: 10px;
+      background-color: #000;
+    }
+    .subtitle {
+      margin-top: 10px;
+      font-size: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+    }
+    #result, #score, #final-score, #score-note {
+      font-size: 20px;
+      margin: 10px;
+    }
+    #intro {
+      padding: 15px;
+      font-size: 14px;
+    }
+    #guide-text {
+      font-size: 18px;
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div id="intro">
+    <h2 id="title">🎮 Game Instructions / ゲーム案内</h2>
+    <p id="guide-text"></p>
+    <button id="start-btn" onclick="startGame()">Start Game / ゲーム開始</button>
+  </div>
+
+  <div id="game-area" class="hidden">
+    <div id="score-note"></div>
+    <div class="btns" id="lang-buttons">
+      <button onclick="setLang('en')">🇬🇧 English</button>
+      <button onclick="setLang('jp')">🇯🇵 日本語</button>
+    </div>
+    <div class="btns" id="btns-choices">
+      <button onclick="choose(1)">①</button>
+      <button onclick="choose(2)">②</button>
+      <button onclick="choose(3)">③</button>
+      <button onclick="choose(4)">④</button>
+      <button onclick="choose(5)">⑤</button>
+      <button onclick="choose(6)">⑥</button>
+    </div>
+    <div class="image-wrapper">
+      <img id="scene" class="scene-img" />
+      <img id="reward-img" class="scene-img" />
+    </div>
+    <div id="subtitle" class="subtitle"></div>
+    <div id="score"></div>
+    <div class="btns">
+      <button id="end-btn" onclick="endGame()">End Game / 終了</button>
+    </div>
+    <div id="final-score"></div>
+    <div id="result"></div>
+
+   <div id="reward-buttons" style="display:none">
+    <button onclick="showReward('A')">Reward A</button>
+    <button onclick="showReward('B')">Reward B</button>
+    <button onclick="showReward('C')">Reward C</button>
+   </div>
+
+    <div id="restart-button" style="display:none">
+      <button id="restart-btn" onclick="restartGame()">🔁 Play Again / もう一度プレイ</button>
+      <button id="exit-btn" onclick="exitGame()">▶️ YouTubeへ / Exit Game</button>
+    </div>
+  </div>
+
+<script>
+  // -------- State --------
+  let imageOrder = [], used = [], totalScore = 0;
+  let currentLang = 'en';
+  let lastSubtitleKey = null;
+  let lastZeroSubtitle = null;
+  let rewardUsed = false;
+
+  // -------- i18n --------
+  const i18n = {
+    guideText: {
+      jp: "このゲームは、1回だけプレイできます。\n6個のボタンを押す順序で、得点が変わります。\n300点以上でご褒美画像が用意されます。",
+      en: "You can play one round per run.\nYour score depends on the order you press the six buttons.\nEarn 300+ points to unlock a reward image.",
+    },
+    scoreNote: {
+      jp: "🎯 ご褒美画像には300点以上が必要です",
+      en: "🎯 300+ points are required to earn a reward image",
+    },
+    totalScoreLabel: { jp: "総合得点：", en: "Total Score: " },
+    finalScoreLabel: { jp: "🎯 最終得点：", en: "🎯 Final Score: " },
+    unknown: { jp: "？？？", en: "???" },
+  };
+
+  // -------- Game content --------
+  const scoreMap = {
+    "./scene1.jpg": 80,
+    "./scene2.jpg": 70,
+    "./scene3.jpg": 260,
+    "./scene4.jpg": 255,
+    "./scene5.jpg": 250,
+    "./scene6.jpg": 30,
+    "./zero.jpg": 0
+  };
+
+  const subtitleMap = {
+    "./scene1.jpg": { jp: "えっ…ここ、どこ？ ピラミッドの中なの！？", en: "Huh...? Where am I? Inside a pyramid!?" },
+    "./scene2.jpg": { jp: "ファラオ様、この食べ物、一生の思い出よっ！？", en: "Pharaoh, this food is unforgettable!" },
+    "./scene3.jpg": { jp: "そうね、でもお値段が！？", en: "Yeah, but what about the price!?" },
+    "./scene4.jpg": { jp: "これも、時空が捻れてるってことだよね！？", en: "So this is what it means to twist space and time!?" },
+    "./scene5.jpg": { jp: "ちょっと！あのラクダ、私のリュック食べてない！？", en: "Wait! Is that camel eating my backpack!?" },
+    "./scene6.jpg": { jp: "うちら、仲良くなれそうかも！？", en: "I feel like we could actually get along!?" }
+  };
+
+  const zeroLines = [
+    { jp: "ゼロ点！？ そんなバナナ…", en: "Zero points!? That's bananas..." },
+    { jp: "うわっ、転んだ！？", en: "Whoa, you slipped!?" },
+    { jp: "あちゃー、バナナにやられた！", en: "Oops, taken down by a banana!" }
+  ];
+
+  // -------- Language helpers --------
+  function applyLang() {
+    document.getElementById("title").innerText = "🎮 Game Instructions / ゲーム案内";
+    document.getElementById("guide-text").innerText =
+      i18n.guideText.en + "\n\n" + i18n.guideText.jp;
+    document.getElementById("start-btn").innerText = "Start Game / ゲーム開始";
+    document.getElementById("end-btn").innerText   = "End Game / 終了";
+    document.getElementById("restart-btn").innerText = "🔁 Play Again / もう一度プレイ";
+    // 修正：Exit GameボタンのテキストをYouTube案内に変更
+    document.getElementById("exit-btn").innerText = "▶️ YouTubeへ / Exit Game";
+    const note = document.getElementById("score-note");
+    if (note) note.innerText = i18n.scoreNote[currentLang];
+    updateScore();
+    const subtitle = document.getElementById("subtitle");
+    if (subtitle && subtitle.style.display !== "none") {
+      if (lastZeroSubtitle) {
+        subtitle.innerText = lastZeroSubtitle[currentLang] || i18n.unknown[currentLang];
+      } else if (lastSubtitleKey) {
+        const sub = subtitleMap[lastSubtitleKey];
+        subtitle.innerText = sub ? (sub[currentLang] || i18n.unknown[currentLang]) : i18n.unknown[currentLang];
+      }
+    }
+  }
+
+  function setLang(lang) {
+    currentLang = lang;
+    applyLang();
+  }
+
+  // -------- Game flow --------
+  function startGame() {
+    document.getElementById("intro").classList.add("hidden");
+    document.getElementById("game-area").classList.remove("hidden");
+    imageOrder = shuffle(["./scene1.jpg", "./scene2.jpg", "./scene3.jpg", "./scene4.jpg", "./scene5.jpg", "./scene6.jpg"]);
+    used = [];
+    totalScore = 0;
+    rewardUsed = false;
+    lastZeroSubtitle = null;
+    lastSubtitleKey = null;
+
+    // 選択肢ボタンを有効化する
+    document.getElementById("btns-choices").querySelectorAll("button").forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+    });
+    // ご褒美ボタンを有効化する
+    document.querySelectorAll("#reward-buttons button").forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+    });
+
+    document.getElementById("reward-buttons").style.display = "none";
+    document.getElementById("restart-button").style.display = "none";
+    document.getElementById("scene").style.display = "none";
+    document.getElementById("reward-img").style.display = "none";
+    document.getElementById("subtitle").style.display = "none";
+    document.getElementById("final-score").innerText = "";
+    document.getElementById("result").innerText = "";
+    updateScore();
+  }
+
+  function restartGame() {
+    startGame();
+  }
+
+  // ★修正：ゲームエリアを非表示にする代わりに、YouTubeへ遷移する終了関数
+  function exitGame() {
+    const confirmation = confirm("ゲームを終了し、YouTubeへ移動しますか？");
+    if (confirmation) {
+      // 指定されたYouTube URLへ移動
+      window.location.href = "https://youtube.com/shorts/ZBwZzelO6OQ?si=NhFWI1p9wsGIZ-yX";
+    }
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    // zero.jpgを必ず一枚ランダムに置く
+    array.splice(Math.floor(Math.random() * array.length), 1, "./zero.jpg");
+    return array;
+  }
+
+  function choose(num) {
+    if (used.includes(num) || document.getElementById("btns-choices").querySelector(`button:nth-child(${num})`).disabled) return;
+    
+    used.push(num);
+    const imgName = imageOrder[num - 1];
+    const scene = document.getElementById("scene");
+    const reward = document.getElementById("reward-img");
+    scene.src = imgName;
+    scene.style.display = "block";
+    reward.style.display = "none";
+
+    if (imgName === "./zero.jpg") {
+      // リセット仕様は維持
+      totalScore = 0;
+      const sub = pickRandom(zeroLines);
+      lastZeroSubtitle = sub;
+      showSubtitle(sub);
+    } else {
+      totalScore += scoreMap[imgName] || 0;
+      const sub = subtitleMap[imgName] || i18n.unknown;
+      showSubtitle(sub, imgName);
+    }
+    updateScore();
+
+    // 選択回数が5回に達したら自動で終了処理を実行
+    if (used.length === 5) endGame();
+  }
+
+  function updateScore() {
+    document.getElementById("score").innerText =
+      (currentLang === 'jp' ? i18n.totalScoreLabel.jp : i18n.totalScoreLabel.en) + totalScore;
+  }
+
+  function showSubtitle(sub, key = null) {
+    const subtitle = document.getElementById("subtitle");
+    subtitle.innerText = sub[currentLang] || i18n.unknown[currentLang];
+    subtitle.style.display = "block";
+    if (key) lastSubtitleKey = key;
+  }
+
+  function pickRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  // 修正済み endGame() 関数: 途中で呼ばれてもご褒美判定とボタン無効化を行う
+  function endGame() {
+    // 1. 選択肢ボタンを無効化し、ゲームの進行を止める
+    document.getElementById("btns-choices").querySelectorAll("button").forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+    });
+
+    // 2. 最終得点の表示
+    document.getElementById("final-score").innerText =
+        (currentLang === 'jp' ? i18n.finalScoreLabel.jp : i18n.finalScoreLabel.en) + totalScore;
+
+    // 3. ご褒美の判定と表示（途中終了でも300点以上なら表示）
+    if (totalScore >= 300) {
+        document.getElementById("reward-buttons").style.display = "flex";
+        document.getElementById("result").innerText = currentLang === 'jp' ? "✨ ご褒美アンロック！" : "✨ Reward Unlocked!";
+    } else {
+        document.getElementById("reward-buttons").style.display = "none";
+        document.getElementById("result").innerText = currentLang === 'jp' ? "残念！ご褒美は300点以上です。" : "Too bad! Need 300+ for the reward.";
+    }
+
+    // 4. 再プレイボタンと終了ボタンの表示
+    document.getElementById("restart-button").style.display = "flex";
+  }
+
+  function showReward(category) {
+    if (rewardUsed) return;
+    let filename = "";
+    if (category === "A") filename = "scene99.jpg";
+    else if (category === "B") filename = "scene98.jpg";
+    else if (category === "C") filename = "scene97.jpg";
+
+    const scene = document.getElementById("scene");
+    const reward = document.getElementById("reward-img");
+    scene.style.display = "none";
+    reward.src = filename;
+    reward.style.display = "block";
+
+    rewardUsed = true;
+    document.querySelectorAll("#reward-buttons button").forEach(btn => {
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+    });
+  }
+
+  // -------- Init --------
+  window.onload = () => {
+    applyLang();
+  };
+</script>
+</body>
+</html>
