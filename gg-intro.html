@@ -75,18 +75,6 @@
   </style>
 </head>
 <!-- 🌟 MOVIDEO Counter: game10 -->
-<script>
-fetch("https://api.countapi.xyz/hit/hatoniwa/game10")
-  .then(r => r.json())
-  .then(d => {
-    document.getElementById("visitCount").textContent =
-      "👁 Views: " + d.value;
-  })
-  .catch(() => {
-    document.getElementById("visitCount").textContent =
-      "👁 Views: ---";
-  });
-</script>  
 <body>
   <div id="intro">
     <h2 id="title">🎮 Game Instructions / ゲーム案内</h2>
