@@ -4,14 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pharaoh & JK Adventure Game Ver.2 (English Edition)</title>
-   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-376739797');
-  </script> 
+  
   <style>
     html, body {
       margin: 0;
@@ -82,21 +75,16 @@
     }
   </style>
 </head>
-<!-- 🌟 MOVIDEO Counter: game10 -->
 
-<!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-W5RS2555');</script>
-<!-- End Google Tag Manager -->
 <body>
-<!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W5RS2555"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->  
-  <div id="intro">
+<div id="intro">
     <h2 id="title">🎮 Game Instructions / ゲーム案内</h2>
     <p id="guide-text"></p>
     <button id="start-btn" onclick="startGame()">Start Game / ゲーム開始</button>
@@ -128,11 +116,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="final-score"></div>
     <div id="result"></div>
 
-   <div id="reward-buttons" style="display:none">
-    <button onclick="showReward('A')">Reward A</button>
-    <button onclick="showReward('B')">Reward B</button>
-    <button onclick="showReward('C')">Reward C</button>
-   </div>
+    <div id="reward-buttons" style="display:none">
+      <button onclick="showReward('A')">Reward A</button>
+      <button onclick="showReward('B')">Reward B</button>
+      <button onclick="showReward('C')">Reward C</button>
+    </div>
 
     <div id="restart-button" style="display:none">
       <button id="restart-btn" onclick="restartGame()">🔁 Play Again / もう一度プレイ</button>
@@ -147,6 +135,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   let lastSubtitleKey = null;
   let lastZeroSubtitle = null;
   let rewardUsed = false;
+  const gameID = 'Pharaoh_JK_Game_2'; // ゲームIDを定義
 
   // -------- i18n --------
   const i18n = {
@@ -195,9 +184,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.getElementById("guide-text").innerText =
       i18n.guideText.en + "\n\n" + i18n.guideText.jp;
     document.getElementById("start-btn").innerText = "Start Game / ゲーム開始";
-    document.getElementById("end-btn").innerText   = "End Game / 終了";
+    document.getElementById("end-btn").innerText    = "End Game / 終了";
     document.getElementById("restart-btn").innerText = "🔁 Play Again / もう一度プレイ";
-    // 修正：Exit GameボタンのテキストをYouTube案内に変更
     document.getElementById("exit-btn").innerText = "▶️ YouTubeへ / Exit Game";
     const note = document.getElementById("score-note");
     if (note) note.innerText = i18n.scoreNote[currentLang];
@@ -229,12 +217,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     lastZeroSubtitle = null;
     lastSubtitleKey = null;
 
-    // 選択肢ボタンを有効化する
     document.getElementById("btns-choices").querySelectorAll("button").forEach(btn => {
         btn.disabled = false;
         btn.style.opacity = "1";
     });
-    // ご褒美ボタンを有効化する
     document.querySelectorAll("#reward-buttons button").forEach(btn => {
         btn.disabled = false;
         btn.style.opacity = "1";
@@ -248,17 +234,24 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.getElementById("final-score").innerText = "";
     document.getElementById("result").innerText = "";
     updateScore();
+    
+    // 【修正点3】トラッキング強化: ゲーム開始イベントを送信
+    if (typeof gtag === 'function') {
+        gtag('event', 'game_start', {
+            'event_category': 'game',
+            'event_label': gameID,
+            'language': currentLang
+        });
+    }
   }
 
   function restartGame() {
     startGame();
   }
 
-  // ★修正：ゲームエリアを非表示にする代わりに、YouTubeへ遷移する終了関数
   function exitGame() {
     const confirmation = confirm("ゲームを終了し、YouTubeへ移動しますか？");
     if (confirmation) {
-      // 指定されたYouTube URLへ移動
       window.location.href = "https://youtube.com/shorts/ZBwZzelO6OQ?si=NhFWI1p9wsGIZ-yX";
     }
   }
@@ -274,30 +267,50 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   function choose(num) {
-    if (used.includes(num) || document.getElementById("btns-choices").querySelector(`button:nth-child(${num})`).disabled) return;
+    const choiceButton = document.getElementById("btns-choices").querySelector(`button:nth-child(${num})`);
+    if (used.includes(num) || choiceButton.disabled) return;
     
     used.push(num);
     const imgName = imageOrder[num - 1];
+    const scoreEarned = scoreMap[imgName] || 0;
+    
+    choiceButton.disabled = true;
+    choiceButton.style.opacity = "0.5"; // 無効化されたボタンをグレーアウト
+    
     const scene = document.getElementById("scene");
     const reward = document.getElementById("reward-img");
     scene.src = imgName;
     scene.style.display = "block";
     reward.style.display = "none";
 
+    let subtitleText = '';
+    
     if (imgName === "./zero.jpg") {
-      // リセット仕様は維持
       totalScore = 0;
       const sub = pickRandom(zeroLines);
       lastZeroSubtitle = sub;
+      subtitleText = sub;
       showSubtitle(sub);
     } else {
-      totalScore += scoreMap[imgName] || 0;
+      totalScore += scoreEarned;
       const sub = subtitleMap[imgName] || i18n.unknown;
+      subtitleText = sub;
       showSubtitle(sub, imgName);
     }
     updateScore();
+    
+    // 【修正点3】トラッキング強化: 選択イベントを送信
+    if (typeof gtag === 'function') {
+        gtag('event', 'choice_made', {
+            'event_category': 'game',
+            'event_label': `Choice_${num}`,
+            'image_file': imgName,
+            'score_change': scoreEarned,
+            'current_score': totalScore,
+            'choices_made': used.length
+        });
+    }
 
-    // 選択回数が5回に達したら自動で終了処理を実行
     if (used.length === 5) endGame();
   }
 
@@ -317,20 +330,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  // 修正済み endGame() 関数: 途中で呼ばれてもご褒美判定とボタン無効化を行う
   function endGame() {
-    // 1. 選択肢ボタンを無効化し、ゲームの進行を止める
     document.getElementById("btns-choices").querySelectorAll("button").forEach(btn => {
         btn.disabled = true;
         btn.style.opacity = "0.5";
     });
 
-    // 2. 最終得点の表示
     document.getElementById("final-score").innerText =
         (currentLang === 'jp' ? i18n.finalScoreLabel.jp : i18n.finalScoreLabel.en) + totalScore;
 
-    // 3. ご褒美の判定と表示（途中終了でも300点以上なら表示）
-    if (totalScore >= 300) {
+    const isRewardUnlocked = totalScore >= 300;
+    
+    if (isRewardUnlocked) {
         document.getElementById("reward-buttons").style.display = "flex";
         document.getElementById("result").innerText = currentLang === 'jp' ? "✨ ご褒美アンロック！" : "✨ Reward Unlocked!";
     } else {
@@ -338,8 +349,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         document.getElementById("result").innerText = currentLang === 'jp' ? "残念！ご褒美は300点以上です。" : "Too bad! Need 300+ for the reward.";
     }
 
-    // 4. 再プレイボタンと終了ボタンの表示
     document.getElementById("restart-button").style.display = "flex";
+    
+    // 【修正点3】トラッキング強化: ゲーム終了イベントを送信
+    if (typeof gtag === 'function') {
+        gtag('event', 'game_end', {
+            'event_category': 'game',
+            'event_label': gameID,
+            'final_score': totalScore,
+            'is_reward_unlocked': isRewardUnlocked ? 'yes' : 'no'
+        });
+    }
   }
 
   function showReward(category) {
@@ -365,7 +385,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // -------- Init --------
   window.onload = () => {
     applyLang();
-    window.location.href=' https://hatoniwa.github.io/movideo-aamovid/end-card.html  .'
+    // 【修正点1】致命的なリダイレクトコードを削除しました。
   };
 </script>
 </body>
