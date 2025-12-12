@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pharaoh & JK Adventure Game Ver.2 (English Edition)</title>
-  
+
   <style>
     html, body {
       margin: 0;
@@ -74,59 +74,65 @@
       white-space: pre-line;
     }
   </style>
+
+  <!-- Google Tag Manager -->
+  <script>
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-W5RS2555');
+  </script>
+  <!-- End Google Tag Manager -->
 </head>
 
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-W5RS2555');</script>
 <body>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W5RS2555"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
 <div id="intro">
-    <h2 id="title">🎮 Game Instructions / ゲーム案内</h2>
-    <p id="guide-text"></p>
-    <button id="start-btn" onclick="startGame()">Start Game / ゲーム開始</button>
+  <h2 id="title">🎮 Game Instructions / ゲーム案内</h2>
+  <p id="guide-text"></p>
+  <button id="start-btn" onclick="startGame()">Start Game / ゲーム開始</button>
+</div>
+
+<div id="game-area" class="hidden">
+  <div id="score-note"></div>
+  <div class="btns" id="lang-buttons">
+    <button onclick="setLang('en')">🇬🇧 English</button>
+    <button onclick="setLang('jp')">🇯🇵 日本語</button>
+  </div>
+  <div class="btns" id="btns-choices">
+    <button onclick="choose(1)">①</button>
+    <button onclick="choose(2)">②</button>
+    <button onclick="choose(3)">③</button>
+    <button onclick="choose(4)">④</button>
+    <button onclick="choose(5)">⑤</button>
+    <button onclick="choose(6)">⑥</button>
+  </div>
+  <div class="image-wrapper">
+    <img id="scene" class="scene-img" />
+    <img id="reward-img" class="scene-img" />
+  </div>
+  <div id="subtitle" class="subtitle"></div>
+  <div id="score"></div>
+  <div class="btns">
+    <button id="end-btn" onclick="endGame()">End Game / 終了</button>
+  </div>
+  <div id="final-score"></div>
+  <div id="result"></div>
+
+  <div id="reward-buttons" style="display:none">
+    <button onclick="showReward('A')">Reward A</button>
+    <button onclick="showReward('B')">Reward B</button>
+    <button onclick="showReward('C')">Reward C</button>
   </div>
 
-  <div id="game-area" class="hidden">
-    <div id="score-note"></div>
-    <div class="btns" id="lang-buttons">
-      <button onclick="setLang('en')">🇬🇧 English</button>
-      <button onclick="setLang('jp')">🇯🇵 日本語</button>
-    </div>
-    <div class="btns" id="btns-choices">
-      <button onclick="choose(1)">①</button>
-      <button onclick="choose(2)">②</button>
-      <button onclick="choose(3)">③</button>
-      <button onclick="choose(4)">④</button>
-      <button onclick="choose(5)">⑤</button>
-      <button onclick="choose(6)">⑥</button>
-    </div>
-    <div class="image-wrapper">
-      <img id="scene" class="scene-img" />
-      <img id="reward-img" class="scene-img" />
-    </div>
-    <div id="subtitle" class="subtitle"></div>
-    <div id="score"></div>
-    <div class="btns">
-      <button id="end-btn" onclick="endGame()">End Game / 終了</button>
-    </div>
-    <div id="final-score"></div>
-    <div id="result"></div>
-
-    <div id="reward-buttons" style="display:none">
-      <button onclick="showReward('A')">Reward A</button>
-      <button onclick="showReward('B')">Reward B</button>
-      <button onclick="showReward('C')">Reward C</button>
-    </div>
-
-    <div id="restart-button" style="display:none">
-      <button id="restart-btn" onclick="restartGame()">🔁 Play Again / もう一度プレイ</button>
-      <button id="exit-btn" onclick="exitGame()">▶️ YouTubeへ / Exit Game</button>
-    </div>
+  <div id="restart-button" style="display:none">
+    <button id="restart-btn" onclick="restartGame()">🔁 Play Again / もう一度プレイ</button>
+    <button id="exit-btn" onclick="exitGame()">▶️ YouTubeへ / Exit Game</button>
   </div>
+</div>
 
 <script>
   // -------- State --------
@@ -135,7 +141,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   let lastSubtitleKey = null;
   let lastZeroSubtitle = null;
   let rewardUsed = false;
-  const gameID = 'Pharaoh_JK_Game_2'; // ゲームIDを定義
+  const gameID = 'Pharaoh_JK_Game_2'; // GAイベント用のゲームID
 
   // -------- i18n --------
   const i18n = {
@@ -218,12 +224,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     lastSubtitleKey = null;
 
     document.getElementById("btns-choices").querySelectorAll("button").forEach(btn => {
-        btn.disabled = false;
-        btn.style.opacity = "1";
+      btn.disabled = false;
+      btn.style.opacity = "1";
     });
     document.querySelectorAll("#reward-buttons button").forEach(btn => {
-        btn.disabled = false;
-        btn.style.opacity = "1";
+      btn.disabled = false;
+      btn.style.opacity = "1";
     });
 
     document.getElementById("reward-buttons").style.display = "none";
@@ -234,14 +240,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.getElementById("final-score").innerText = "";
     document.getElementById("result").innerText = "";
     updateScore();
-    
-    // 【修正点3】トラッキング強化: ゲーム開始イベントを送信
+
+    // ゲーム開始イベント（GA4 / GTM 側で拾えるように）
     if (typeof gtag === 'function') {
-        gtag('event', 'game_start', {
-            'event_category': 'game',
-            'event_label': gameID,
-            'language': currentLang
-        });
+      gtag('event', 'game_start', {
+        'event_category': 'game',
+        'event_label': gameID,
+        'language': currentLang
+      });
     }
   }
 
@@ -269,46 +275,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   function choose(num) {
     const choiceButton = document.getElementById("btns-choices").querySelector(`button:nth-child(${num})`);
     if (used.includes(num) || choiceButton.disabled) return;
-    
+
     used.push(num);
     const imgName = imageOrder[num - 1];
     const scoreEarned = scoreMap[imgName] || 0;
-    
+
     choiceButton.disabled = true;
     choiceButton.style.opacity = "0.5"; // 無効化されたボタンをグレーアウト
-    
+
     const scene = document.getElementById("scene");
     const reward = document.getElementById("reward-img");
     scene.src = imgName;
     scene.style.display = "block";
     reward.style.display = "none";
 
-    let subtitleText = '';
-    
     if (imgName === "./zero.jpg") {
       totalScore = 0;
       const sub = pickRandom(zeroLines);
       lastZeroSubtitle = sub;
-      subtitleText = sub;
       showSubtitle(sub);
     } else {
       totalScore += scoreEarned;
       const sub = subtitleMap[imgName] || i18n.unknown;
-      subtitleText = sub;
       showSubtitle(sub, imgName);
     }
     updateScore();
-    
-    // 【修正点3】トラッキング強化: 選択イベントを送信
+
+    // 選択イベント
     if (typeof gtag === 'function') {
-        gtag('event', 'choice_made', {
-            'event_category': 'game',
-            'event_label': `Choice_${num}`,
-            'image_file': imgName,
-            'score_change': scoreEarned,
-            'current_score': totalScore,
-            'choices_made': used.length
-        });
+      gtag('event', 'choice_made', {
+        'event_category': 'game',
+        'event_label': `Choice_${num}`,
+        'image_file': imgName,
+        'score_change': scoreEarned,
+        'current_score': totalScore,
+        'choices_made': used.length
+      });
     }
 
     if (used.length === 5) endGame();
@@ -332,33 +334,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   function endGame() {
     document.getElementById("btns-choices").querySelectorAll("button").forEach(btn => {
-        btn.disabled = true;
-        btn.style.opacity = "0.5";
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
     });
 
     document.getElementById("final-score").innerText =
-        (currentLang === 'jp' ? i18n.finalScoreLabel.jp : i18n.finalScoreLabel.en) + totalScore;
+      (currentLang === 'jp' ? i18n.finalScoreLabel.jp : i18n.finalScoreLabel.en) + totalScore;
 
     const isRewardUnlocked = totalScore >= 300;
-    
+
     if (isRewardUnlocked) {
-        document.getElementById("reward-buttons").style.display = "flex";
-        document.getElementById("result").innerText = currentLang === 'jp' ? "✨ ご褒美アンロック！" : "✨ Reward Unlocked!";
+      document.getElementById("reward-buttons").style.display = "flex";
+      document.getElementById("result").innerText =
+        currentLang === 'jp' ? "✨ ご褒美アンロック！" : "✨ Reward Unlocked!";
     } else {
-        document.getElementById("reward-buttons").style.display = "none";
-        document.getElementById("result").innerText = currentLang === 'jp' ? "残念！ご褒美は300点以上です。" : "Too bad! Need 300+ for the reward.";
+      document.getElementById("reward-buttons").style.display = "none";
+      document.getElementById("result").innerText =
+        currentLang === 'jp' ? "残念！ご褒美は300点以上です。" : "Too bad! Need 300+ for the reward.";
     }
 
     document.getElementById("restart-button").style.display = "flex";
-    
-    // 【修正点3】トラッキング強化: ゲーム終了イベントを送信
+
     if (typeof gtag === 'function') {
-        gtag('event', 'game_end', {
-            'event_category': 'game',
-            'event_label': gameID,
-            'final_score': totalScore,
-            'is_reward_unlocked': isRewardUnlocked ? 'yes' : 'no'
-        });
+      gtag('event', 'game_end', {
+        'event_category': 'game',
+        'event_label': gameID,
+        'final_score': totalScore,
+        'is_reward_unlocked': isRewardUnlocked ? 'yes' : 'no'
+      });
     }
   }
 
@@ -372,7 +375,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const scene = document.getElementById("scene");
     const reward = document.getElementById("reward-img");
     scene.style.display = "none";
-    reward.src = filename;
+
+    // キャッシュ対策としてクエリを付加（最新画像を必ず読みに行く）
+    reward.src = filename + "?v=" + Date.now();
     reward.style.display = "block";
 
     rewardUsed = true;
@@ -385,11 +390,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // -------- Init --------
   window.onload = () => {
     applyLang();
-    // 【修正点1】致命的なリダイレクトコードを削除しました。
   };
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+</script>
+
+<!-- Firebase SDK（v8系：グローバル名前空間版） -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
   // --- Firebase init ---
@@ -406,16 +412,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // --- Counter: Add +1 each time the page loads ---
-  const gameID = "game10";
+  // --- Counter: ページを開くたびに +1 ---
+  const counterGameID = "game10";
 
-  db.collection("counters").doc(gameID).set({
-    lastAccess: new Date(),
-  }, { merge: true });
-
-  db.collection("counters").doc(gameID).update({
-    count: firebase.firestore.FieldValue.increment(1)
+  db.collection("counters").doc(counterGameID).set({
+    lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true })
+  .then(() => {
+    return db.collection("counters").doc(counterGameID).update({
+      count: firebase.firestore.FieldValue.increment(1)
+    });
+  })
+  .catch((err) => {
+    console.error("Counter update error:", err);
   });
 </script>
+
 </body>
 </html>
