@@ -409,7 +409,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- Firebase SDK（v8系：グローバル名前空間版） -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
 <script>
   // --- Firebase init ---
   const firebaseConfig = {
@@ -422,24 +421,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     measurementId: "G-MB78677VDD"
   };
 
+  // Firebaseを起動
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // --- Counter: ページを開くたびに +1 ---
-  const counterGameID = "game10";
+  // --- Counter: Add +1 each time the page loads ---
+  const gameID = "game10";
 
-  db.collection("counters").doc(counterGameID).set({
-    lastAccess: firebase.firestore.FieldValue.serverTimestamp()
+  // 1. まずデータ入れ物があるか確認して作る
+  db.collection("counters").doc(gameID).set({
+    lastAccess: new Date(),
   }, { merge: true })
   .then(() => {
-    return db.collection("counters").doc(counterGameID).update({
-      count: firebase.firestore.FieldValue.increment(1)
-    });
+      // 2. あればカウントを+1する
+      return db.collection("counters").doc(gameID).update({
+        count: firebase.firestore.FieldValue.increment(1)
+      });
   })
-  .catch((err) => {
-    console.error("Counter update error:", err);
+  .then(() => {
+      console.log("カウントアップ成功！");
+  })
+  .catch((error) => {
+      console.error("エラー:", error);
   });
 </script>
-
 </body>
 </html>
